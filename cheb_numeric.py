@@ -8,6 +8,8 @@ Created on Sat Jun  1 17:45:10 2024
 
 import numpy as np
 
+
+# get the first-order differential matrix 'D' and the Chebyshev distribution grid 'x'
 def cheb(N):
     if N == 0:
         D = np.array([0])
@@ -29,7 +31,7 @@ def cheb(N):
     
     return D, x
 
-
+# get the Chebyshev integration weight vector 'w'
 def clenCurt(N):
     theta = np.pi * np.arange(N + 1) / N
     x = np.cos(theta)

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jun  3 20:58:50 2024
+Calculate the basic data and store them into a file for each Reynolds number. 
+The basic data include the DNS grid, mean velocity, Cess eddy viscosity and wavenumbers. 
 
 @author: jitongd
 """
 
+#%% Re_{\tau}=180
 import numpy as np
 from cheb_numeric import *
 from read_file import *
@@ -58,11 +60,10 @@ ky = np.arange(0, 21, 2)
 kx_array = np.repeat(kx[:], len(ky), axis=0)
 ky_array = np.tile(ky, len(kx))
 
-np.savez('full180_mean.npz', channelRe, nx, ny, nz, nzDNS, dkx, dky, Lx, Ly, xu, xp, yv, yp, zw, zp, kx_array, ky_array)
+np.savez('full180_mean.npz', channelRe=channelRe, nx=nx, ny=ny, nz=nz, nzDNS=nzDNS, dkx=dkx, dky=dky, Lx=Lx, Ly=Ly, xu=xu, xp=xp, yv=yv, yp=yp, zw=zw, zp=zp, kx_array=kx_array, ky_array=ky_array)
 
 
-
-#%%
+#%% Re_{\tau}=395
 
 import numpy as np
 from cheb_numeric import *
@@ -116,15 +117,12 @@ ky = np.arange(0, 21, 2)
 kx_array = np.repeat(kx[:], len(ky), axis=0)
 ky_array = np.tile(ky, len(kx))
 
-np.savez('full395_mean.npz', channelRe, nx, ny, nz, nzDNS, dkx, dky, Lx, Ly, xu, xp, yv, yp, zw, zp, kx_array, ky_array)
+np.savez('full395_mean.npz', channelRe=channelRe, nx=nx, ny=ny, nz=nz, nzDNS=nzDNS, dkx=dkx, dky=dky, Lx=Lx, Ly=Ly, xu=xu, xp=xp, yv=yv, yp=yp, zw=zw, zp=zp, kx_array=kx_array, ky_array=ky_array)
 
 
 
 
-
-
-
-#%%
+#%% Re_{\tau}=590
 
 import numpy as np
 from cheb_numeric import *
@@ -178,4 +176,4 @@ ky = np.arange(0, 41, 2)
 kx_array = np.repeat(kx[:], len(ky), axis=0)
 ky_array = np.tile(ky, len(kx))
 
-np.savez('full590_mean.npz', channelRe, nx, ny, nz, nzDNS, dkx, dky, Lx, Ly, xu, xp, yv, yp, zw, zp, kx_array, ky_array)
+np.savez('full590_mean.npz', channelRe=channelRe, nx=nx, ny=ny, nz=nz, nzDNS=nzDNS, dkx=dkx, dky=dky, Lx=Lx, Ly=Ly, xu=xu, xp=xp, yv=yv, yp=yp, zw=zw, zp=zp, kx_array=kx_array, ky_array=ky_array)
