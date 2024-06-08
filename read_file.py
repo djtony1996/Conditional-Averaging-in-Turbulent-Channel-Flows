@@ -3,11 +3,9 @@ from scipy.interpolate import interp1d
 
 # read the dat files containing velocities
 def read_bin(filename, dim):
-    A = np.zeros((dim[0] + 2, dim[1], dim[2]))
     with open(filename, 'rb') as fid:
-        A_temp = np.fromfile(fid, dtype=np.float64, count=np.prod(dim))
-        A_temp = np.reshape(A_temp, tuple(dim),order='F') 
-        A[1:-1,:,:] = A_temp
+        A = np.fromfile(fid, dtype=np.float64, count=np.prod(dim))
+        A = np.reshape(A, tuple(dim),order='F') 
     return A
 
 # the wall-normal coordinate of the DNS grid
@@ -25,7 +23,7 @@ def get_intepolated_uvw(u_old,v_old,w_old,xu,xp,yv,yp,zp,zc,zw):
     v_new = v_new[1:-1,:,:]
     v_new = interp1d(yv,v_new,kind='linear',axis=1,fill_value="extrapolate")(yp)
     
-    w_new = interp1d(zp,v_old,kind='linear',axis=0,fill_value="extrapolate")(zc)
+    w_new = interp1d(zw,w_old,kind='linear',axis=0,fill_value="extrapolate")(zc)
     w_new = w_new[1:-1,:,:]
     
     return u_new, v_new, w_new

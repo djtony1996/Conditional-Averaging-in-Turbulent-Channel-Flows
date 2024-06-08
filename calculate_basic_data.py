@@ -52,7 +52,7 @@ yp = (ygrid[:-1] + yv) / 2
 dz = np.squeeze(read_bin('inputdir/dz_grid_180.dat', (nzDNS, 1)))
 zp = get_zp(dz)
 zp = np.concatenate(([-1], zp - 1, [1]))
-_, zw = cheb(nz)
+_, zw = cheb(nzDNS)
 zw = np.flipud(zw)
 
 kx = np.concatenate((np.arange(11), np.arange(-10, 0)))
@@ -109,7 +109,7 @@ yp = (ygrid[:-1] + yv) / 2
 dz = np.squeeze(read_bin('inputdir/dz_grid_395.dat', (nzDNS, 1)))
 zp = get_zp(dz)
 zp = np.concatenate(([-1], zp - 1, [1]))
-_, zw = cheb(nz)
+_, zw = cheb(nzDNS)
 zw = np.flipud(zw)
 
 kx = np.concatenate((np.arange(11), np.arange(-10, 0)))
@@ -168,7 +168,7 @@ yp = (ygrid[:-1] + yv) / 2
 dz = np.squeeze(read_bin('inputdir/dz_grid_590.dat', (nzDNS, 1)))
 zp = get_zp(dz)
 zp = np.concatenate(([-1], zp - 1, [1]))
-_, zw = cheb(nz)
+_, zw = cheb(nzDNS)
 zw = np.flipud(zw)
 
 kx = np.concatenate((np.arange(21), np.arange(-20, 0)))
