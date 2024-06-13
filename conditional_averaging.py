@@ -7,6 +7,10 @@ Created on Thu Jun  6 20:16:47 2024
 """
 
 import numpy as np
+from cheb_numeric import *
+from read_file import *
+from derivative_calculation import *
+from calculate_TKE_sTKE import *
 
 def get_detection_events(all_events_array, k_scale, detection_case, whe_single):
     if detection_case == 1:
@@ -85,17 +89,89 @@ def get_new_3d_box(u, kx, ky, kx_middle, ky_middle):
     return u
 
 
+def get_swirling_strength(velocity_tensor,nx,ny,nz):
+    swirling_strength = np.zeros((nz-1,ny,nx))
+    for kz in range(nz-1):
+        for ky in range(ny):
+            for kx in range(nx):
+                velocity_tensor_onepoint = velocity_tensor[kz, ky, kx,:].reshape(3, 3)
+                eigenvalues = np.linalg.eigvals(velocity_tensor_onepoint)
+                swirling_strength[kz, ky, kx] = np.max(np.imag(eigenvalues))
+    return swirling_strength
 
 
-# Example usage
-# all_events_array = np.array([0.1, -0.5, 1.6, -0.4, 0.8, -1.5,-1.9,-2, 0.2, -0.7, 2.3])
-# k_scale = 1
-# detection_case = 1
-# whe_single = 1
+def get_uvwNonTp_z(k_z,Retau,read_array):
+    filename = f'full{Retau}_mean.npz'
+    data = np.load(filename, allow_pickle=True)
+    channelRe = data['channelRe'].item()
+    nx = data['nx'].item()
+    ny = data['ny'].item()
+    nz = data['nz'].item()
+    nzDNS = data['nzDNS'].item()
+    dkx = data['dkx'].item()
+    dky = data['dky'].item()
+    xu = data['xu']
+    xp = data['xp']
+    yv = data['yv']
+    yp = data['yp']
+    zw = data['zw']
+    zp = data['zp']
 
-# pick_events_posi, pick_events_nega = get_detection_events(all_events_array, k_scale, detection_case, whe_single)
-# pick_NonTp_posi_index = np.nonzero(pick_events_posi)[0]
-# pick_NonTp_nega_index = np.nonzero(pick_events_nega)[0]
+    U    = channelRe['Up'][1:-1]
+    dUdz = channelRe['Up_diff1'][1:-1]
+
+    Diff, zc = cheb(nz)
+    Diff = Diff[1:-1,1:-1]
+    
+    u_slice = np.zeros((len(read_array),ny,nx))
+    v_slice = np.zeros((len(read_array),ny,nx))
+    w_slice = np.zeros((len(read_array),ny,nx))
+    NonTp_slice = np.zeros((len(read_array),ny,nx))
+    Prop_slice  = np.zeros((len(read_array),ny,nx))
+    Dissp_slice = np.zeros((len(read_array),ny,nx))
+    
+    if Retau == 180:
+        loadname1 = '180/112x112x150'
+        nx_d = 10
+        ny_d = 10
+    elif Retau == 395:
+        loadname1 = '395/256x256x300'
+    elif Retau == 590:
+        loadname1 = '590/384x384x500'
+        nx_d = 180
+        ny_d = 180
+    else:
+        raise ValueError("Unsupported Retau value")
+
+    for k_index in range(len(read_array)):
+        u = np.zeros((nzDNS+2,ny,nx))
+        v = np.zeros((nzDNS+2,ny,nx))
+        w = np.zeros((nzDNS+1,ny,nx))
+        
+        u[1:-1,:,:] = read_bin('u/u_it{}.dat'.format(read_array[k_index]), np.array([nzDNS,ny,nx]))
+        v[1:-1,:,:] = read_bin('v/v_it{}.dat'.format(read_array[k_index]), np.array([nzDNS,ny,nx]))
+        w[1:,:,:]   = read_bin('w/w_it{}.dat'.format(read_array[k_index]), np.array([nzDNS,ny,nx]))
+        
+        u,v,w = get_intepolated_uvw(u,v,w,xu,xp,yv,yp,zp,zc,zw)
+        
+        u = u - U[:, np.newaxis, np.newaxis]
+        Prop, Dissp, NonTp = get_three_energy_physicalspace(u, v, w, nx_d, ny_d, nx, ny, dkx, dky, Diff, dUdz)
+        
+        u_slice[k_index,:,:] = u[k_z,:,:]
+        v_slice[k_index,:,:] = v[k_z,:,:]
+        w_slice[k_index,:,:] = w[k_z,:,:]
+        NonTp_slice[k_index,:,:] = NonTp[k_z,:,:]
+        Prop_slice[k_index,:,:]  = Prop[k_z,:,:]
+        Dissp_slice[k_index,:,:] = Dissp[k_z,:,:]
+        
+    u_slice = u_slice.astype(np.float16)
+    v_slice = v_slice.astype(np.float16)
+    w_slice = w_slice.astype(np.float16)
+    NonTp_slice = NonTp_slice.astype(np.float16)
+    Prop_slice  = Prop_slice.astype(np.float16)
+    Dissp_slice = Dissp_slice.astype(np.float16)
+    
+    return u_slice, v_slice, w_slice, NonTp_slice, Prop_slice, Dissp_slice
 
 
 
