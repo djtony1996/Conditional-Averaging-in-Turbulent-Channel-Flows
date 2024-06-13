@@ -7,6 +7,7 @@ The basic data include the DNS grid, mean velocity, Cess eddy viscosity and wave
 @author: jitongd
 """
 
+
 #%% Re_{\tau}=180
 import numpy as np
 from cheb_numeric import *
@@ -48,6 +49,8 @@ xu = xgrid[1:]
 xp = (xgrid[:-1] + xu) / 2
 yv = ygrid[1:]
 yp = (ygrid[:-1] + yv) / 2
+nx_d = 50
+ny_d = 50
 
 dz = np.squeeze(read_bin('inputdir/dz_grid_180.dat', (nzDNS, 1)))
 zp = get_zp(dz)
@@ -60,7 +63,7 @@ ky = np.arange(0, 21, 2)
 kx_array = np.repeat(kx[:], len(ky), axis=0)
 ky_array = np.tile(ky, len(kx))
 
-np.savez('full180_mean.npz', channelRe=channelRe, nx=nx, ny=ny, nz=nz, nzDNS=nzDNS, dkx=dkx, dky=dky, Lx=Lx, Ly=Ly, xu=xu, xp=xp, yv=yv, yp=yp, zw=zw, zp=zp, kx_array=kx_array, ky_array=ky_array)
+np.savez('full180_mean.npz', channelRe=channelRe, nx=nx, ny=ny, nz=nz, nzDNS=nzDNS, dkx=dkx, dky=dky, Lx=Lx, Ly=Ly, xu=xu, xp=xp, yv=yv, yp=yp, zw=zw, zp=zp, nx_d = nx_d, ny_d=ny_d, kx_array=kx_array, ky_array=ky_array)
 
 
 #%% Re_{\tau}=395
@@ -105,6 +108,8 @@ xu = xgrid[1:]
 xp = (xgrid[:-1] + xu) / 2
 yv = ygrid[1:]
 yp = (ygrid[:-1] + yv) / 2
+nx_d = 120
+ny_d = 120
 
 dz = np.squeeze(read_bin('inputdir/dz_grid_395.dat', (nzDNS, 1)))
 zp = get_zp(dz)
@@ -117,7 +122,7 @@ ky = np.arange(0, 21, 2)
 kx_array = np.repeat(kx[:], len(ky), axis=0)
 ky_array = np.tile(ky, len(kx))
 
-np.savez('full395_mean.npz', channelRe=channelRe, nx=nx, ny=ny, nz=nz, nzDNS=nzDNS, dkx=dkx, dky=dky, Lx=Lx, Ly=Ly, xu=xu, xp=xp, yv=yv, yp=yp, zw=zw, zp=zp, kx_array=kx_array, ky_array=ky_array)
+np.savez('full395_mean.npz', channelRe=channelRe, nx=nx, ny=ny, nz=nz, nzDNS=nzDNS, dkx=dkx, dky=dky, Lx=Lx, Ly=Ly, xu=xu, xp=xp, yv=yv, yp=yp, zw=zw, zp=zp, nx_d=nx_d, ny_d=ny_d, kx_array=kx_array, ky_array=ky_array)
 
 
 
@@ -164,6 +169,8 @@ xu = xgrid[1:]
 xp = (xgrid[:-1] + xu) / 2
 yv = ygrid[1:]
 yp = (ygrid[:-1] + yv) / 2
+nx_d = 180
+ny_d = 180
 
 dz = np.squeeze(read_bin('inputdir/dz_grid_590.dat', (nzDNS, 1)))
 zp = get_zp(dz)
@@ -176,4 +183,4 @@ ky = np.arange(0, 41, 2)
 kx_array = np.repeat(kx[:], len(ky), axis=0)
 ky_array = np.tile(ky, len(kx))
 
-np.savez('full590_mean.npz', channelRe=channelRe, nx=nx, ny=ny, nz=nz, nzDNS=nzDNS, dkx=dkx, dky=dky, Lx=Lx, Ly=Ly, xu=xu, xp=xp, yv=yv, yp=yp, zw=zw, zp=zp, kx_array=kx_array, ky_array=ky_array)
+np.savez('full590_mean.npz', channelRe=channelRe, nx=nx, ny=ny, nz=nz, nzDNS=nzDNS, dkx=dkx, dky=dky, Lx=Lx, Ly=Ly, xu=xu, xp=xp, yv=yv, yp=yp, zw=zw, zp=zp, nx_d=nx_d, ny_d=ny_d, kx_array=kx_array, ky_array=ky_array)
