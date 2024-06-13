@@ -132,14 +132,10 @@ def get_uvwNonTp_z(k_z,Retau,read_array):
     
     if Retau == 180:
         loadname1 = '180/112x112x150'
-        nx_d = 10
-        ny_d = 10
     elif Retau == 395:
         loadname1 = '395/256x256x300'
     elif Retau == 590:
         loadname1 = '590/384x384x500'
-        nx_d = 180
-        ny_d = 180
     else:
         raise ValueError("Unsupported Retau value")
 
