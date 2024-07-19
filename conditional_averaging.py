@@ -110,6 +110,8 @@ def get_uvwNonTp_z(k_z,Retau,read_array):
     nzDNS = data['nzDNS'].item()
     dkx = data['dkx'].item()
     dky = data['dky'].item()
+    nx_d = data['nx_d'].item()
+    ny_d = data['ny_d'].item()
     xu = data['xu']
     xp = data['xp']
     yv = data['yv']
@@ -148,6 +150,13 @@ def get_uvwNonTp_z(k_z,Retau,read_array):
         v[1:-1,:,:] = read_bin('v/v_it{}.dat'.format(read_array[k_index]), np.array([nzDNS,ny,nx]))
         w[1:,:,:]   = read_bin('w/w_it{}.dat'.format(read_array[k_index]), np.array([nzDNS,ny,nx]))
         
+        # loadname = f"../ChanFast/grid_{loadname1}/outputdir/u_it{int(read_array[k_index]):.0f}.dat"
+        # u[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
+        # loadname = f"../ChanFast/grid_{loadname1}/outputdir/v_it{int(read_array[k_index]):.0f}.dat"
+        # v[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
+        # loadname = f"../ChanFast/grid_{loadname1}/outputdir/w_it{int(read_array[k_index]):.0f}.dat"
+        # w[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
+        
         u,v,w = get_intepolated_uvw(u,v,w,xu,xp,yv,yp,zp,zc,zw)
         
         u = u - U[:, np.newaxis, np.newaxis]
@@ -168,6 +177,62 @@ def get_uvwNonTp_z(k_z,Retau,read_array):
     Dissp_slice = Dissp_slice.astype(np.float16)
     
     return u_slice, v_slice, w_slice, NonTp_slice, Prop_slice, Dissp_slice
+
+
+def get_cd_velocities(pick_NonTp_index,kx_detection,ky_detection,kx_middle,ky_middle,Retau,read_array):
+    filename = f'full{Retau}_mean.npz'
+    data = np.load(filename, allow_pickle=True)
+    channelRe = data['channelRe'].item()
+    nx = data['nx'].item()
+    ny = data['ny'].item()
+    nz = data['nz'].item()
+    nzDNS = data['nzDNS'].item()
+    xu = data['xu']
+    xp = data['xp']
+    yv = data['yv']
+    yp = data['yp']
+    zw = data['zw']
+    zp = data['zp']
+    
+    U    = channelRe['Up'][1:-1]
+    _, zc = cheb(nz)
+    
+    u_cd     = np.zeros((nz-1, ny, nx), dtype=float)
+    v_cd     = np.zeros((nz-1, ny, nx), dtype=float)
+    w_cd     = np.zeros((nz-1, ny, nx), dtype=float)
+    
+    for k_array_index in range(len(pick_NonTp_index)):
+        k_array = pick_NonTp_index[k_array_index]
+        
+        u = np.zeros((nzDNS+2,ny,nx))
+        v = np.zeros((nzDNS+2,ny,nx))
+        w = np.zeros((nzDNS+1,ny,nx))
+        
+        # for local debugging purposes
+        u[1:-1,:,:] = read_bin('u/u_it{}.dat'.format(read_array[k_array_index]), np.array([nzDNS,ny,nx]))
+        v[1:-1,:,:] = read_bin('v/v_it{}.dat'.format(read_array[k_array_index]), np.array([nzDNS,ny,nx]))
+        w[1:,:,:]   = read_bin('w/w_it{}.dat'.format(read_array[k_array_index]), np.array([nzDNS,ny,nx]))
+        
+        # for HPC code running
+        # loadname = f"../ChanFast/grid_{loadname1}/outputdir/u_it{int(read_array[k_array_index]):.0f}.dat"
+        # u[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
+        # loadname = f"../ChanFast/grid_{loadname1}/outputdir/v_it{int(read_array[k_array_index]):.0f}.dat"
+        # v[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
+        # loadname = f"../ChanFast/grid_{loadname1}/outputdir/w_it{int(read_array[k_array_index]):.0f}.dat"
+        # w[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
+        
+        u,v,w = get_intepolated_uvw(u,v,w,xu,xp,yv,yp,zp,zc,zw)
+        u = u - U[:, np.newaxis, np.newaxis]
+        
+        u = get_new_3d_box(u, kx_detection, ky_detection, kx_middle, ky_middle)
+        v = get_new_3d_box(v, kx_detection, ky_detection, kx_middle, ky_middle)
+        w = get_new_3d_box(w, kx_detection, ky_detection, kx_middle, ky_middle)
+
+        u_cd     = k_array_index*u_cd/(k_array_index+1) + u/(k_array_index+1)
+        v_cd     = k_array_index*v_cd/(k_array_index+1) + v/(k_array_index+1)
+        w_cd     = k_array_index*w_cd/(k_array_index+1) + w/(k_array_index+1)
+    
+    return u_cd, v_cd, w_cd
 
 
 
