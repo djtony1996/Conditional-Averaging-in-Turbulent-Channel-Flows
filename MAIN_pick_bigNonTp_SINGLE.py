@@ -6,6 +6,7 @@ Created on Thu Jun 13 21:16:06 2024
 @author: jitongd
 """
 
+import sys
 import numpy as np
 from cheb_numeric import *
 from read_file import *
@@ -13,15 +14,28 @@ from derivative_calculation import *
 from calculate_TKE_sTKE import *
 from conditional_averaging import *
 
-
+# stating the arguments directly
+Retau = 180
 k_z = 110
 k_scale = 0
-kx_detection_array = np.arange(0,112,20)
-ky_detection_array = np.arange(0,112,20)
-Retau = 180
+kx_detection_array = np.arange(0,112,60)
+ky_detection_array = np.arange(0,112,60)
 read_array = [60000,200000] 
 jobid = 1224
 workers = 1
+
+# for command line arguments passing
+# Retau               = int(sys.argv[1])
+# k_z                 = int(sys.argv[2])
+# k_scale             = int(sys.argv[3])
+# detection_interval  = int(sys.argv[4])
+# read_array_start    = int(sys.argv[5])
+# read_array_end      = int(sys.argv[6])
+# read_array_interval = int(sys.argv[7])
+# jobid               = int(sys.argv[8])
+# workers             = int(sys.argv[9])
+
+# read_array = np.arange(read_array_start,read_array_end+1,read_array_interval)
 
 if Retau == 180:
     loadname1 = '180/112x112x150'
@@ -54,6 +68,10 @@ yv = data['yv']
 yp = data['yp']
 zw = data['zw']
 zp = data['zp']
+
+# for command line passing
+# kx_detection_array = np.arange(0,nx,detection_interval)
+# ky_detection_array = np.arange(0,ny,detection_interval)
 
 kx_middle = int(nx/2)
 ky_middle = int(ny/2)
@@ -92,75 +110,12 @@ for kx_detection_index in range(len(kx_detection_array)):
         number_posi[ky_detection_index,kx_detection_index] = len(pick_NonTp_posi_index)
         number_nega[ky_detection_index,kx_detection_index] = len(pick_NonTp_nega_index)
         
-        u_cd_posi     = np.zeros((nz-1, ny, nx), dtype=float)
-        v_cd_posi     = np.zeros((nz-1, ny, nx), dtype=float)
-        w_cd_posi     = np.zeros((nz-1, ny, nx), dtype=float)
-        u_cd_nega     = np.zeros((nz-1, ny, nx), dtype=float)
-        v_cd_nega     = np.zeros((nz-1, ny, nx), dtype=float)
-        w_cd_nega     = np.zeros((nz-1, ny, nx), dtype=float)
+        u_cd_posi, v_cd_posi, w_cd_posi = get_cd_velocities(pick_NonTp_posi_index,kx_detection,ky_detection,kx_middle,ky_middle,Retau,read_array)
+        u_cd_nega, v_cd_nega, w_cd_nega = get_cd_velocities(pick_NonTp_nega_index,kx_detection,ky_detection,kx_middle,ky_middle,Retau,read_array)   
         
-        for k_array_index in range(len(pick_NonTp_posi_index)):
-            k_array = pick_NonTp_posi_index[k_array_index]
-            
-            u = np.zeros((nzDNS+2,ny,nx))
-            v = np.zeros((nzDNS+2,ny,nx))
-            w = np.zeros((nzDNS+1,ny,nx))
-            
-            # u[1:-1,:,:] = read_bin('u/u_it{}.dat'.format(read_array[k_array_index]), np.array([nzDNS,ny,nx]))
-            # v[1:-1,:,:] = read_bin('v/v_it{}.dat'.format(read_array[k_array_index]), np.array([nzDNS,ny,nx]))
-            # w[1:,:,:]   = read_bin('w/w_it{}.dat'.format(read_array[k_array_index]), np.array([nzDNS,ny,nx]))
-            
-            loadname = f"../ChanFast/grid_{loadname1}/outputdir/u_it{int(read_array[k_array]):.0f}.dat"
-            u[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-            loadname = f"../ChanFast/grid_{loadname1}/outputdir/v_it{int(read_array[k_array]):.0f}.dat"
-            v[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-            loadname = f"../ChanFast/grid_{loadname1}/outputdir/w_it{int(read_array[k_array]):.0f}.dat"
-            w[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-            
-            u,v,w = get_intepolated_uvw(u,v,w,xu,xp,yv,yp,zp,zc,zw)
-            u = u - U[:, np.newaxis, np.newaxis]
-            
-            u = get_new_3d_box(u, kx_detection, ky_detection, kx_middle, ky_middle)
-            v = get_new_3d_box(v, kx_detection, ky_detection, kx_middle, ky_middle)
-            w = get_new_3d_box(w, kx_detection, ky_detection, kx_middle, ky_middle)
-
-            u_cd_posi     = k_array_index*u_cd_posi/(k_array_index+1) + u/(k_array_index+1)
-            v_cd_posi     = k_array_index*v_cd_posi/(k_array_index+1) + v/(k_array_index+1)
-            w_cd_posi     = k_array_index*w_cd_posi/(k_array_index+1) + w/(k_array_index+1)
-            
         u_cd_posi_all        = u_cd_posi        * len(pick_NonTp_posi_index)        + u_cd_posi_all
         v_cd_posi_all        = v_cd_posi        * len(pick_NonTp_posi_index)        + v_cd_posi_all
         w_cd_posi_all        = w_cd_posi        * len(pick_NonTp_posi_index)        + w_cd_posi_all
-        
-        
-        for k_array_index in range(len(pick_NonTp_nega_index)):
-            k_array = pick_NonTp_nega_index[k_array_index]
-            
-            u = np.zeros((nzDNS+2,ny,nx))
-            v = np.zeros((nzDNS+2,ny,nx))
-            w = np.zeros((nzDNS+1,ny,nx))
-            
-            # u[1:-1,:,:] = read_bin('u/u_it{}.dat'.format(read_array[k_array]), np.array([nzDNS,ny,nx]))
-            # v[1:-1,:,:] = read_bin('v/v_it{}.dat'.format(read_array[k_array]), np.array([nzDNS,ny,nx]))
-            # w[1:,:,:]   = read_bin('w/w_it{}.dat'.format(read_array[k_array]), np.array([nzDNS,ny,nx]))
-            
-            loadname = f"../ChanFast/grid_{loadname1}/outputdir/u_it{int(read_array[k_array]):.0f}.dat"
-            u[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-            loadname = f"../ChanFast/grid_{loadname1}/outputdir/v_it{int(read_array[k_array]):.0f}.dat"
-            v[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-            loadname = f"../ChanFast/grid_{loadname1}/outputdir/w_it{int(read_array[k_array]):.0f}.dat"
-            w[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-            
-            u,v,w = get_intepolated_uvw(u,v,w,xu,xp,yv,yp,zp,zc,zw)
-            u = u - U[:, np.newaxis, np.newaxis]
-            
-            u = get_new_3d_box(u, kx_detection, ky_detection, kx_middle, ky_middle)
-            v = get_new_3d_box(v, kx_detection, ky_detection, kx_middle, ky_middle)
-            w = get_new_3d_box(w, kx_detection, ky_detection, kx_middle, ky_middle)
-
-            u_cd_nega     = k_array_index*u_cd_nega/(k_array_index+1) + u/(k_array_index+1)
-            v_cd_nega     = k_array_index*v_cd_nega/(k_array_index+1) + v/(k_array_index+1)
-            w_cd_nega     = k_array_index*w_cd_nega/(k_array_index+1) + w/(k_array_index+1)
             
         u_cd_nega_all        = u_cd_nega        * len(pick_NonTp_nega_index)        + u_cd_nega_all
         v_cd_nega_all        = v_cd_nega        * len(pick_NonTp_nega_index)        + v_cd_nega_all
@@ -206,52 +161,9 @@ w_cd_nega_all     = w_cd_nega_all     / np.sum(number_nega)
 #         number_posi[ky_detection_index,kx_detection_index] = len(pick_NonTp_posi_index)
 #         number_nega[ky_detection_index,kx_detection_index] = len(pick_NonTp_nega_index)
         
-#         u_cd_posi     = np.zeros((nz-1, ny, nx), dtype=float)
-#         v_cd_posi     = np.zeros((nz-1, ny, nx), dtype=float)
-#         w_cd_posi     = np.zeros((nz-1, ny, nx), dtype=float)
-#         uw_cd_posi    = np.zeros((nz-1, ny, nx), dtype=float)
-#         NonTp_cd_posi = np.zeros((nz-1, ny, nx), dtype=float)
-#         swirling_posi = np.zeros((nz-1, ny, nx), dtype=float)
-#         u_cd_nega     = np.zeros((nz-1, ny, nx), dtype=float)
-#         v_cd_nega     = np.zeros((nz-1, ny, nx), dtype=float)
-#         w_cd_nega     = np.zeros((nz-1, ny, nx), dtype=float)
-#         uw_cd_nega    = np.zeros((nz-1, ny, nx), dtype=float)
-#         NonTp_cd_nega = np.zeros((nz-1, ny, nx), dtype=float)
-#         swirling_nega = np.zeros((nz-1, ny, nx), dtype=float)
+#         u_cd_posi, v_cd_posi, w_cd_posi, NonTp_cd_posi, swirling_cd_posi = get_cd_velocities_more(pick_NonTp_posi_index,kx_detection,ky_detection,kx_middle,ky_middle,Retau,read_array)
+#         u_cd_nega, v_cd_nega, w_cd_nega, NonTp_cd_nega, swirling_cd_nega = get_cd_velocities_more(pick_NonTp_nega_index,kx_detection,ky_detection,kx_middle,ky_middle,Retau,read_array)
         
-#         for k_array_index in range(len(pick_NonTp_posi_index)):
-#             k_array = pick_NonTp_posi_index[k_array_index]
-            
-#             u = np.zeros((nzDNS+2,ny,nx))
-#             v = np.zeros((nzDNS+2,ny,nx))
-#             w = np.zeros((nzDNS+1,ny,nx))
-            
-#             loadname = f"../ChanFast/grid_{loadname1}/outputdir/u_it{int(read_array[k_array]):.0f}.dat"
-#             u[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-#             loadname = f"../ChanFast/grid_{loadname1}/outputdir/v_it{int(read_array[k_array]):.0f}.dat"
-#             v[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-#             loadname = f"../ChanFast/grid_{loadname1}/outputdir/w_it{int(read_array[k_array]):.0f}.dat"
-#             w[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-            
-#             u,v,w = get_intepolated_uvw(u,v,w,xu,xp,yv,yp,zp,zc,zw)
-#             u = u - U[:, np.newaxis, np.newaxis]
-            
-#             u = get_new_3d_box(u, kx_detection, ky_detection, kx_middle, ky_middle)
-#             v = get_new_3d_box(v, kx_detection, ky_detection, kx_middle, ky_middle)
-#             w = get_new_3d_box(w, kx_detection, ky_detection, kx_middle, ky_middle)
-        
-#             _, _, NonTp = get_three_energy_physicalspace(u, v, w, nx_d, ny_d, nx, ny, dkx, dky, Diff, dUdz)
-        
-#             velocity_tensor = get_velocity_tensor(u, v, w, Diff, nx_d, ny_d, nx, ny, dkx, dky)
-#             swirling_strength = get_swirling_strength(velocity_tensor,nx,ny,nz)
-
-#             u_cd_posi     = k_array_index*u_cd_posi/(k_array_index+1)     + u/(k_array_index+1)
-#             v_cd_posi     = k_array_index*v_cd_posi/(k_array_index+1)     + v/(k_array_index+1)
-#             w_cd_posi     = k_array_index*w_cd_posi/(k_array_index+1)     + w/(k_array_index+1)
-#             uw_cd_posi    = k_array_index*uw_cd_posi/(k_array_index+1)    + u*w/(k_array_index+1)
-#             NonTp_cd_posi = k_array_index*NonTp_cd_posi/(k_array_index+1) + NonTp/(k_array_index+1)
-#             swirling_posi = k_array_index*swirling_posi/(k_array_index+1) + swirling_strength/(k_array_index+1)
-            
 #         u_cd_posi_all        = u_cd_posi        * len(pick_NonTp_posi_index)        + u_cd_posi_all
 #         v_cd_posi_all        = v_cd_posi        * len(pick_NonTp_posi_index)        + v_cd_posi_all
 #         w_cd_posi_all        = w_cd_posi        * len(pick_NonTp_posi_index)        + w_cd_posi_all
@@ -259,40 +171,6 @@ w_cd_nega_all     = w_cd_nega_all     / np.sum(number_nega)
 #         NonTp_cd_posi_all    = NonTp_cd_posi    * len(pick_NonTp_posi_index)        + NonTp_cd_posi_all
 #         swirling_cd_posi_all = swirling_cd_posi * len(pick_NonTp_posi_index)        + swirling_cd_posi_all
         
-        
-#         for k_array_index in range(len(pick_NonTp_nega_index)):
-#             k_array = pick_NonTp_nega_index[k_array_index]
-            
-#             u = np.zeros((nzDNS+2,ny,nx))
-#             v = np.zeros((nzDNS+2,ny,nx))
-#             w = np.zeros((nzDNS+1,ny,nx))
-            
-#             loadname = f"../ChanFast/grid_{loadname1}/outputdir/u_it{int(read_array[k_array]):.0f}.dat"
-#             u[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-#             loadname = f"../ChanFast/grid_{loadname1}/outputdir/v_it{int(read_array[k_array]):.0f}.dat"
-#             v[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-#             loadname = f"../ChanFast/grid_{loadname1}/outputdir/w_it{int(read_array[k_array]):.0f}.dat"
-#             w[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-            
-#             u,v,w = get_intepolated_uvw(u,v,w,xu,xp,yv,yp,zp,zc,zw)
-#             u = u - U[:, np.newaxis, np.newaxis]
-            
-#             u = get_new_3d_box(u, kx_detection, ky_detection, kx_middle, ky_middle)
-#             v = get_new_3d_box(v, kx_detection, ky_detection, kx_middle, ky_middle)
-#             w = get_new_3d_box(w, kx_detection, ky_detection, kx_middle, ky_middle)
-        
-#             _, _, NonTp = get_three_energy_physicalspace(u, v, w, nx_d, ny_d, nx, ny, dkx, dky, Diff, dUdz)
-        
-#             velocity_tensor = get_velocity_tensor(u, v, w, Diff, nx_d, ny_d, nx, ny, dkx, dky)
-#             swirling_strength = get_swirling_strength(velocity_tensor,nx,ny,nz)
-
-#             u_cd_nega     = k_array_index*u_cd_nega/(k_array_index+1)     + u/(k_array_index+1)
-#             v_cd_nega     = k_array_index*v_cd_nega/(k_array_index+1)     + v/(k_array_index+1)
-#             w_cd_nega     = k_array_index*w_cd_nega/(k_array_index+1)     + w/(k_array_index+1)
-#             uw_cd_nega    = k_array_index*uw_cd_nega/(k_array_index+1)   + u*w/(k_array_index+1)
-#             NonTp_cd_nega = k_array_index*NonTp_cd_nega/(k_array_index+1) + NonTp/(k_array_index+1)
-#             swirling_nega = k_array_index*swirling_nega/(k_array_index+1) + swirling_strength/(k_array_index+1)
-            
 #         u_cd_nega_all        = u_cd_nega        * len(pick_NonTp_nega_index)        + u_cd_nega_all
 #         v_cd_nega_all        = v_cd_nega        * len(pick_NonTp_nega_index)        + v_cd_nega_all
 #         w_cd_nega_all        = w_cd_nega        * len(pick_NonTp_nega_index)        + w_cd_nega_all
