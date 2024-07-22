@@ -16,8 +16,8 @@ from conditional_averaging import *
 import multiprocessing as mp
 
 
-def get_cd_velocities_posi_nega(kx_detection, ky_detection, NonTp_slice,k_scale,kx_middle,ky_middle,Retau,read_array):
-    print("starting")
+def get_cd_velocities_posi_nega(kx_detection, ky_detection, NonTp_slice,k_scale,kx_middle,ky_middle,Retau,read_array,whether_16):
+    print(mp.current_process())
     NonTp_slice2 = np.squeeze(NonTp_slice[:,ky_detection,kx_detection])
     pick_NonTp_posi, pick_NonTp_nega = get_detection_events(NonTp_slice2, k_scale, 1, 0)
     
@@ -27,12 +27,13 @@ def get_cd_velocities_posi_nega(kx_detection, ky_detection, NonTp_slice,k_scale,
     u_cd_posi, v_cd_posi, w_cd_posi = get_cd_velocities(pick_NonTp_posi_index,kx_detection,ky_detection,kx_middle,ky_middle,Retau,read_array)
     u_cd_nega, v_cd_nega, w_cd_nega = get_cd_velocities(pick_NonTp_nega_index,kx_detection,ky_detection,kx_middle,ky_middle,Retau,read_array)
     
-    u_cd_posi = u_cd_posi.astype(np.float16)
-    v_cd_posi = v_cd_posi.astype(np.float16)
-    w_cd_posi = w_cd_posi.astype(np.float16)
-    u_cd_nega = u_cd_nega.astype(np.float16)
-    v_cd_nega = v_cd_nega.astype(np.float16)
-    w_cd_nega = w_cd_nega.astype(np.float16)
+    if whether_16:
+        u_cd_posi = u_cd_posi.astype(np.float16)
+        v_cd_posi = v_cd_posi.astype(np.float16)
+        w_cd_posi = w_cd_posi.astype(np.float16)
+        u_cd_nega = u_cd_nega.astype(np.float16)
+        v_cd_nega = v_cd_nega.astype(np.float16)
+        w_cd_nega = w_cd_nega.astype(np.float16)
     
     return len(pick_NonTp_posi_index), len(pick_NonTp_nega_index), u_cd_posi, v_cd_posi, w_cd_posi, u_cd_nega, v_cd_nega, w_cd_nega
 
@@ -46,6 +47,7 @@ if __name__ == '__main__':
     read_array = [60000,200000] 
     jobid = 1224
     workers = 2
+    whether_16 = 1
     
     
     # for command line arguments passing
@@ -111,12 +113,38 @@ if __name__ == '__main__':
     pool.close()
     
 #%%
-    u_cd_posi_all     = u_cd_posi_all     / np.sum(number_posi)
-    v_cd_posi_all     = v_cd_posi_all     / np.sum(number_posi)
-    w_cd_posi_all     = w_cd_posi_all     / np.sum(number_posi)
-    u_cd_nega_all     = u_cd_nega_all     / np.sum(number_nega)
-    v_cd_nega_all     = v_cd_nega_all     / np.sum(number_nega)
-    w_cd_nega_all     = w_cd_nega_all     / np.sum(number_nega)
+    if whether_16:
+        u_cd_posi_all = np.zeros((nz-1, ny, nx), dtype=np.float16)
+        v_cd_posi_all = np.zeros((nz-1, ny, nx), dtype=np.float16)
+        w_cd_posi_all = np.zeros((nz-1, ny, nx), dtype=np.float16)
+        u_cd_nega_all = np.zeros((nz-1, ny, nx), dtype=np.float16)
+        v_cd_nega_all = np.zeros((nz-1, ny, nx), dtype=np.float16)
+        w_cd_nega_all = np.zeros((nz-1, ny, nx), dtype=np.float16)
+    
+    
+    number_posi_all = 0
+    number_nega_all = 0
+    
+    
+    for results_element in results:
+        number_posi_all += results_element[0]
+        number_nega_all += results_element[1]
+        u_cd_posi_all += results_element[2]
+        v_cd_posi_all += results_element[3]
+        w_cd_posi_all += results_element[4]
+        u_cd_nega_all += results_element[5]
+        v_cd_nega_all += results_element[6]
+        w_cd_nega_all += results_element[7]
+        
+    del results, results_element
+        
+#%%
+    u_cd_posi_all     = u_cd_posi_all     / number_posi_all
+    v_cd_posi_all     = v_cd_posi_all     / number_posi_all
+    w_cd_posi_all     = w_cd_posi_all     / number_posi_all
+    u_cd_nega_all     = u_cd_nega_all     / number_nega_all
+    v_cd_nega_all     = v_cd_nega_all     / number_nega_all
+    w_cd_nega_all     = w_cd_nega_all     / number_nega_all
     
     
     _, _, NonTp_posi_aftercd = get_three_energy_physicalspace(u_cd_posi_all, v_cd_posi_all, w_cd_posi_all, nx_d, ny_d, nx, ny, dkx, dky, Diff, dUdz)
