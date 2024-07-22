@@ -15,15 +15,15 @@ def get_zp(dz):
 
 # linearly interpolate the velocities on the staggered grid onto the collocated grid
 def get_intepolated_uvw(u_old,v_old,w_old,xu,xp,yv,yp,zp,zc,zw):
-    u_new = interp1d(zp,u_old,kind='linear',axis=0,fill_value="extrapolate")(zc)
+    u_new = interp1d(zp,u_old,kind='cubic',axis=0,fill_value="extrapolate")(zc)
     u_new = u_new[1:-1,:,:]
-    u_new = interp1d(xu,u_new,kind='linear',axis=2,fill_value="extrapolate")(xp)
+    u_new = interp1d(xu,u_new,kind='cubic',axis=2,fill_value="extrapolate")(xp)
     
-    v_new = interp1d(zp,v_old,kind='linear',axis=0,fill_value="extrapolate")(zc)
+    v_new = interp1d(zp,v_old,kind='cubic',axis=0,fill_value="extrapolate")(zc)
     v_new = v_new[1:-1,:,:]
-    v_new = interp1d(yv,v_new,kind='linear',axis=1,fill_value="extrapolate")(yp)
+    v_new = interp1d(yv,v_new,kind='cubic',axis=1,fill_value="extrapolate")(yp)
     
-    w_new = interp1d(zw,w_old,kind='linear',axis=0,fill_value="extrapolate")(zc)
+    w_new = interp1d(zw,w_old,kind='cubic',axis=0,fill_value="extrapolate")(zc)
     w_new = w_new[1:-1,:,:]
     
     return u_new, v_new, w_new
