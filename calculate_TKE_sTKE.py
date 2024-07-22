@@ -6,7 +6,8 @@ Created on Sat Jun  8 17:56:31 2024
 @author: jitongd
 """
 
-from derivative_calculation import *
+import numpy as np
+from derivative_calculation import get_3d_physical
 
 def get_three_energy_physicalspace(u, v, w, nx_d, ny_d, nx, ny, dkx, dky, Diff, dUdz):
     
