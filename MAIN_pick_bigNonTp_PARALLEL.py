@@ -39,28 +39,29 @@ def get_cd_velocities_posi_nega(kx_detection, ky_detection, NonTp_slice,k_scale,
 
 if __name__ == '__main__':
     # stating the arguments directly
-    Retau = 180
-    k_z = 110
-    k_scale = 0
-    kx_detection_array = np.arange(0,112,120)
-    ky_detection_array = np.arange(0,112,20)
-    read_array = [60000,200000] 
-    jobid = 1224
-    workers = 2
-    whether_16 = 1
+    # Retau = 180
+    # k_z = 110
+    # k_scale = 0
+    # kx_detection_array = np.arange(0,112,120)
+    # ky_detection_array = np.arange(0,112,20)
+    # read_array = [60000,200000] 
+    # jobid = 1224
+    # workers = 2
+    # whether_16 = 1
     
     
     # for command line arguments passing
-    # Retau               = int(sys.argv[1])
-    # k_z                 = int(sys.argv[2])
-    # k_scale             = int(sys.argv[3])
-    # detection_interval  = int(sys.argv[4])
-    # read_array_start    = int(sys.argv[5])
-    # read_array_end      = int(sys.argv[6])
-    # read_array_interval = int(sys.argv[7])
-    # jobid               = int(sys.argv[8])
-    # workers             = int(sys.argv[9])
-    # read_array = np.arange(read_array_start,read_array_end+1,read_array_interval)
+    Retau               = int(sys.argv[1])
+    k_z                 = int(sys.argv[2])
+    k_scale             = int(sys.argv[3])
+    detection_interval  = int(sys.argv[4])
+    read_array_start    = int(sys.argv[5])
+    read_array_end      = int(sys.argv[6])
+    read_array_interval = int(sys.argv[7])
+    jobid               = int(sys.argv[8])
+    workers             = int(sys.argv[9])
+    whether_16          = int(sys.argv[10])
+    read_array = np.arange(read_array_start,read_array_end+1,read_array_interval)
     
     if Retau == 180:
         loadname1 = '180/112x112x150'
@@ -94,8 +95,8 @@ if __name__ == '__main__':
     zw = data['zw']
     zp = data['zp']
     
-    #kx_detection_array = np.arange(0,nx,detection_interval)
-    #ky_detection_array = np.arange(0,ny,detection_interval)
+    kx_detection_array = np.arange(0,nx,detection_interval)
+    ky_detection_array = np.arange(0,ny,detection_interval)
     kx_middle = int(nx/2)
     ky_middle = int(ny/2)
     
@@ -112,7 +113,6 @@ if __name__ == '__main__':
     results = pool.starmap(get_cd_velocities_posi_nega, [(kx_detection, ky_detection, NonTp_slice,k_scale,kx_middle,ky_middle,Retau,read_array,whether_16) for kx_detection in kx_detection_array for ky_detection in ky_detection_array])
     pool.close()
     
-#%%
     if whether_16:
         u_cd_posi_all = np.zeros((nz-1, ny, nx), dtype=np.float16)
         v_cd_posi_all = np.zeros((nz-1, ny, nx), dtype=np.float16)
@@ -120,11 +120,9 @@ if __name__ == '__main__':
         u_cd_nega_all = np.zeros((nz-1, ny, nx), dtype=np.float16)
         v_cd_nega_all = np.zeros((nz-1, ny, nx), dtype=np.float16)
         w_cd_nega_all = np.zeros((nz-1, ny, nx), dtype=np.float16)
-    
-    
+     
     number_posi_all = 0
     number_nega_all = 0
-    
     
     for results_element in results:
         number_posi_all += results_element[0]
@@ -138,7 +136,6 @@ if __name__ == '__main__':
         
     del results, results_element
         
-#%%
     u_cd_posi_all     = u_cd_posi_all     / number_posi_all
     v_cd_posi_all     = v_cd_posi_all     / number_posi_all
     w_cd_posi_all     = w_cd_posi_all     / number_posi_all
