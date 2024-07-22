@@ -7,10 +7,10 @@ Created on Thu Jun  6 20:16:47 2024
 """
 
 import numpy as np
-from cheb_numeric import *
-from read_file import *
-from derivative_calculation import *
-from calculate_TKE_sTKE import *
+from cheb_numeric import cheb
+from read_file import read_bin, get_intepolated_uvw
+from derivative_calculation import get_velocity_tensor
+from calculate_TKE_sTKE import get_three_energy_physicalspace
 
 def get_detection_events(all_events_array, k_scale, detection_case, whe_single):
     if detection_case == 1:
@@ -260,12 +260,22 @@ def get_cd_velocities_more(pick_NonTp_index,kx_detection,ky_detection,kx_middle,
     ny = data['ny'].item()
     nz = data['nz'].item()
     nzDNS = data['nzDNS'].item()
+    dkx = data['dkx'].item()
+    dky = data['dky'].item()
+    nx_d = data['nx_d'].item()
+    ny_d = data['ny_d'].item()
     xu = data['xu']
     xp = data['xp']
     yv = data['yv']
     yp = data['yp']
     zw = data['zw']
     zp = data['zp']
+
+    U    = channelRe['Up'][1:-1]
+    dUdz = channelRe['Up_diff1'][1:-1]
+
+    Diff, zc = cheb(nz)
+    Diff = Diff[1:-1,1:-1]
     
     if Retau == 180:
         loadname1 = '180/112x112x150'
@@ -325,6 +335,5 @@ def get_cd_velocities_more(pick_NonTp_index,kx_detection,ky_detection,kx_middle,
         
     
     return u_cd, v_cd, w_cd, NonTp_cd, swirling
-
 
 
