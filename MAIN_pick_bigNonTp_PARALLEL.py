@@ -8,11 +8,11 @@ Created on Mon Jul 15 20:19:32 2024
 
 import sys
 import numpy as np
-from cheb_numeric import *
-from read_file import *
-from derivative_calculation import *
-from calculate_TKE_sTKE import *
-from conditional_averaging import *
+from cheb_numeric import cheb
+from read_file import read_bin, get_intepolated_uvw
+from derivative_calculation import get_velocity_tensor
+from calculate_TKE_sTKE import get_three_energy_physicalspace
+from conditional_averaging import get_detection_events, get_swirling_strength, get_uvwNonTp_z, get_cd_velocities, get_cd_velocities_more
 import multiprocessing as mp
 
 
