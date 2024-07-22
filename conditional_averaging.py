@@ -14,13 +14,21 @@ from calculate_TKE_sTKE import *
 
 def get_detection_events(all_events_array, k_scale, detection_case, whe_single):
     if detection_case == 1:
+        all_events_array = np.float128(all_events_array)
         pick_events = np.abs(all_events_array) > (k_scale * np.sqrt(np.mean(all_events_array**2)))
+        all_events_array = np.float64(all_events_array)
     elif detection_case == 2:
+        all_events_array = np.float128(all_events_array)
         pick_events = all_events_array > (k_scale * np.mean(all_events_array))
+        all_events_array = np.float64(all_events_array)
     elif detection_case == 3:
+        all_events_array = np.float128(all_events_array)
         pick_events = all_events_array < (k_scale * np.mean(all_events_array))
+        all_events_array = np.float64(all_events_array)
     elif detection_case == 4:
+        all_events_array = np.float128(all_events_array)
         pick_events = all_events_array > (k_scale * np.max(all_events_array))
+        all_events_array = np.float64(all_events_array)
     else:
         raise ValueError("This detection criterion has not been coded.")
     
@@ -28,7 +36,7 @@ def get_detection_events(all_events_array, k_scale, detection_case, whe_single):
     if whe_single == 1:
         repeat_left = np.zeros(len(pick_events)-1, dtype=int)
         repeat_right = np.zeros(len(pick_events)-1, dtype=int)
-        
+         
         # left
         k_array1 = 0
         if pick_events[0]:
@@ -146,16 +154,16 @@ def get_uvwNonTp_z(k_z,Retau,read_array):
         v = np.zeros((nzDNS+2,ny,nx))
         w = np.zeros((nzDNS+1,ny,nx))
         
-        u[1:-1,:,:] = read_bin('u/u_it{}.dat'.format(read_array[k_index]), np.array([nzDNS,ny,nx]))
-        v[1:-1,:,:] = read_bin('v/v_it{}.dat'.format(read_array[k_index]), np.array([nzDNS,ny,nx]))
-        w[1:,:,:]   = read_bin('w/w_it{}.dat'.format(read_array[k_index]), np.array([nzDNS,ny,nx]))
+        # u[1:-1,:,:] = read_bin('u/u_it{}.dat'.format(read_array[k_index]), np.array([nzDNS,ny,nx]))
+        # v[1:-1,:,:] = read_bin('v/v_it{}.dat'.format(read_array[k_index]), np.array([nzDNS,ny,nx]))
+        # w[1:,:,:]   = read_bin('w/w_it{}.dat'.format(read_array[k_index]), np.array([nzDNS,ny,nx]))
         
-        # loadname = f"../ChanFast/grid_{loadname1}/outputdir/u_it{int(read_array[k_index]):.0f}.dat"
-        # u[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-        # loadname = f"../ChanFast/grid_{loadname1}/outputdir/v_it{int(read_array[k_index]):.0f}.dat"
-        # v[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-        # loadname = f"../ChanFast/grid_{loadname1}/outputdir/w_it{int(read_array[k_index]):.0f}.dat"
-        # w[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
+        loadname = f"../ChanFast/grid_{loadname1}/outputdir/u_it{int(read_array[k_index]):.0f}.dat"
+        u[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
+        loadname = f"../ChanFast/grid_{loadname1}/outputdir/v_it{int(read_array[k_index]):.0f}.dat"
+        v[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
+        loadname = f"../ChanFast/grid_{loadname1}/outputdir/w_it{int(read_array[k_index]):.0f}.dat"
+        w[1:,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
         
         u,v,w = get_intepolated_uvw(u,v,w,xu,xp,yv,yp,zp,zc,zw)
         
@@ -179,7 +187,6 @@ def get_uvwNonTp_z(k_z,Retau,read_array):
     return u_slice, v_slice, w_slice, NonTp_slice, Prop_slice, Dissp_slice
 
 
-
 def get_cd_velocities(pick_NonTp_index,kx_detection,ky_detection,kx_middle,ky_middle,Retau,read_array):
     filename = f'full{Retau}_mean.npz'
     data = np.load(filename, allow_pickle=True)
@@ -194,6 +201,15 @@ def get_cd_velocities(pick_NonTp_index,kx_detection,ky_detection,kx_middle,ky_mi
     yp = data['yp']
     zw = data['zw']
     zp = data['zp']
+    
+    if Retau == 180:
+        loadname1 = '180/112x112x150'
+    elif Retau == 395:
+        loadname1 = '395/256x256x300'
+    elif Retau == 590:
+        loadname1 = '590/384x384x500'
+    else:
+        raise ValueError("Unsupported Retau value")
     
     U    = channelRe['Up'][1:-1]
     _, zc = cheb(nz)
@@ -210,17 +226,17 @@ def get_cd_velocities(pick_NonTp_index,kx_detection,ky_detection,kx_middle,ky_mi
         w = np.zeros((nzDNS+1,ny,nx))
         
         # for local debugging purposes
-        u[1:-1,:,:] = read_bin('u/u_it{}.dat'.format(read_array[k_array]), np.array([nzDNS,ny,nx]))
-        v[1:-1,:,:] = read_bin('v/v_it{}.dat'.format(read_array[k_array]), np.array([nzDNS,ny,nx]))
-        w[1:,:,:]   = read_bin('w/w_it{}.dat'.format(read_array[k_array]), np.array([nzDNS,ny,nx]))
+        # u[1:-1,:,:] = read_bin('u/u_it{}.dat'.format(read_array[k_array]), np.array([nzDNS,ny,nx]))
+        # v[1:-1,:,:] = read_bin('v/v_it{}.dat'.format(read_array[k_array]), np.array([nzDNS,ny,nx]))
+        # w[1:,:,:]   = read_bin('w/w_it{}.dat'.format(read_array[k_array]), np.array([nzDNS,ny,nx]))
         
         # for HPC code running
-        # loadname = f"../ChanFast/grid_{loadname1}/outputdir/u_it{int(read_array[k_array]):.0f}.dat"
-        # u[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-        # loadname = f"../ChanFast/grid_{loadname1}/outputdir/v_it{int(read_array[k_array]):.0f}.dat"
-        # v[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-        # loadname = f"../ChanFast/grid_{loadname1}/outputdir/w_it{int(read_array[k_array]):.0f}.dat"
-        # w[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
+        loadname = f"../ChanFast/grid_{loadname1}/outputdir/u_it{int(read_array[k_array]):.0f}.dat"
+        u[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
+        loadname = f"../ChanFast/grid_{loadname1}/outputdir/v_it{int(read_array[k_array]):.0f}.dat"
+        v[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
+        loadname = f"../ChanFast/grid_{loadname1}/outputdir/w_it{int(read_array[k_array]):.0f}.dat"
+        w[1:,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
         
         u,v,w = get_intepolated_uvw(u,v,w,xu,xp,yv,yp,zp,zc,zw)
         u = u - U[:, np.newaxis, np.newaxis]
@@ -251,6 +267,15 @@ def get_cd_velocities_more(pick_NonTp_index,kx_detection,ky_detection,kx_middle,
     zw = data['zw']
     zp = data['zp']
     
+    if Retau == 180:
+        loadname1 = '180/112x112x150'
+    elif Retau == 395:
+        loadname1 = '395/256x256x300'
+    elif Retau == 590:
+        loadname1 = '590/384x384x500'
+    else:
+        raise ValueError("Unsupported Retau value")
+    
     U    = channelRe['Up'][1:-1]
     _, zc = cheb(nz)
     
@@ -268,17 +293,17 @@ def get_cd_velocities_more(pick_NonTp_index,kx_detection,ky_detection,kx_middle,
         w = np.zeros((nzDNS+1,ny,nx))
         
         # for local debugging purposes
-        u[1:-1,:,:] = read_bin('u/u_it{}.dat'.format(read_array[k_array]), np.array([nzDNS,ny,nx]))
-        v[1:-1,:,:] = read_bin('v/v_it{}.dat'.format(read_array[k_array]), np.array([nzDNS,ny,nx]))
-        w[1:,:,:]   = read_bin('w/w_it{}.dat'.format(read_array[k_array]), np.array([nzDNS,ny,nx]))
+        # u[1:-1,:,:] = read_bin('u/u_it{}.dat'.format(read_array[k_array]), np.array([nzDNS,ny,nx]))
+        # v[1:-1,:,:] = read_bin('v/v_it{}.dat'.format(read_array[k_array]), np.array([nzDNS,ny,nx]))
+        # w[1:,:,:]   = read_bin('w/w_it{}.dat'.format(read_array[k_array]), np.array([nzDNS,ny,nx]))
         
         # for HPC code running
-        # loadname = f"../ChanFast/grid_{loadname1}/outputdir/u_it{int(read_array[k_array]):.0f}.dat"
-        # u[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-        # loadname = f"../ChanFast/grid_{loadname1}/outputdir/v_it{int(read_array[k_array]):.0f}.dat"
-        # v[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
-        # loadname = f"../ChanFast/grid_{loadname1}/outputdir/w_it{int(read_array[k_array]):.0f}.dat"
-        # w[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
+        loadname = f"../ChanFast/grid_{loadname1}/outputdir/u_it{int(read_array[k_array]):.0f}.dat"
+        u[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
+        loadname = f"../ChanFast/grid_{loadname1}/outputdir/v_it{int(read_array[k_array]):.0f}.dat"
+        v[1:-1,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
+        loadname = f"../ChanFast/grid_{loadname1}/outputdir/w_it{int(read_array[k_array]):.0f}.dat"
+        w[1:,:,:] = read_bin(loadname, np.array([nzDNS,ny,nx]))
         
         u,v,w = get_intepolated_uvw(u,v,w,xu,xp,yv,yp,zp,zc,zw)
         u = u - U[:, np.newaxis, np.newaxis]
