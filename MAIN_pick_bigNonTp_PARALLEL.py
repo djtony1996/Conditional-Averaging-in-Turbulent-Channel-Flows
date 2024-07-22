@@ -109,7 +109,7 @@ if __name__ == '__main__':
     print("all good now")
     
     pool = mp.Pool(workers)
-    results = pool.starmap(get_cd_velocities_posi_nega, [(kx_detection, ky_detection, NonTp_slice,k_scale,kx_middle,ky_middle,Retau,read_array) for kx_detection in kx_detection_array for ky_detection in ky_detection_array])
+    results = pool.starmap(get_cd_velocities_posi_nega, [(kx_detection, ky_detection, NonTp_slice,k_scale,kx_middle,ky_middle,Retau,read_array,whether_16) for kx_detection in kx_detection_array for ky_detection in ky_detection_array])
     pool.close()
     
 #%%
