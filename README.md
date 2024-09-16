@@ -5,3 +5,7 @@ We pick out snapshots experiencing large values of turbulent convection and cate
 Then, for both positive and negative events, we plot the vortical coherent structures. 
 
 You can run any of the main codes:
+
+MAIN_pick_bigNonTp_SINGLE.py
+MAIN_pick_bigNonTp_PARALLEL.py
+MAIN_pick_bigNonTp_PARALLEL_memsave.py
